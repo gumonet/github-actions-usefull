@@ -8,16 +8,23 @@ on:
       - dev.*
 
 jobs:
-  deploy-infra:
+  check-cancel-instructions:
     runs-on: ubuntu-latest
+    outputs:
+      IS_CANCEL: ${{ steps.check-cancel.outputs.IS_CANCEL }}
     steps:
       - uses: actions/checkout@v4
       - name: Check cancel instructions
+        id: check-cancel
         run: |
+          IS_CANCEL="FALSE"
           if [[ "${{ github.event.head_commit.message }}" =~ "cancel-deploy" ]]; then
-            echo "Cancelling deployment"
-            exit 1
+            echo "Cancelling deployment" 
+            IS_CANCEL="TRUE"
           fi
+          echo "IS_CANCEL=${IS_CANCEL}" >> $GITHUB_ENV
+          echo "IS_CANCEL=${IS_CANCEL}" >> $GITHUB_OUTPUT
+
       - name: Check last PR comment for "cancel-deploy"
         if: github.event_name == 'pull_request'
         env:
@@ -30,3 +37,14 @@ jobs:
             echo "Cancelling deployment"
             exit 1
           fi
+  deploy-infra:
+    runs-on: ubuntu-latest
+    needs: ['check-cancel-instructions']
+    if: needs.check-cancel-instructions.outputs.IS_CANCEL != 'TRUE'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploying...
+        run: |
+          echo "🚀 Proceeding with deployment..."
+          git status
