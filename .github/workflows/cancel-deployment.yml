@@ -21,22 +21,21 @@ jobs:
           if [[ "${{ github.event.head_commit.message }}" =~ "cancel-deploy" ]]; then
             echo "Cancelling deployment" 
             IS_CANCEL="TRUE"
+          else 
+           if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
+            echo "https://api.github.com/repos/${{ github.repository_owner }}/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
+
+            LAST_COMMENT=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository_owner }}/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" | \
+            jq -r '.[-1].body')
+            if [[ "$LAST_COMMENT" =~ "cancel-deploy" ]]; then
+                echo "Cancelling deployment"
+                IS_CANCEL="TRUE"
+            fi
           fi
           echo "IS_CANCEL=${IS_CANCEL}" >> $GITHUB_ENV
           echo "IS_CANCEL=${IS_CANCEL}" >> $GITHUB_OUTPUT
 
-      - name: Check last PR comment for "cancel-deploy"
-        if: github.event_name == 'pull_request'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          LAST_COMMENT=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-          "https://api.github.com/repos/${{ github.repository_owner }}/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" | \
-          jq -r '.[-1].body')
-          if [[ "$LAST_COMMENT" =~ "cancel-deploy" ]]; then
-            echo "Cancelling deployment"
-            exit 1
-          fi
   deploy-infra:
     runs-on: ubuntu-latest
     needs: ['check-cancel-instructions']
