@@ -1,0 +1,32 @@
+name: Cancell via comment
+
+on:
+  push:
+    branches:
+      - dev
+    tags:
+      - dev.*
+
+jobs:
+  deploy-infra:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check cancel instructions
+        run: |
+          if [[ "${{ github.event.head_commit.message }}" =~ "cancel-deploy" ]]; then
+            echo "Cancelling deployment"
+            exit 1
+          fi
+      - name: Check last PR comment for "cancel-deploy"
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LAST_COMMENT=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          "https://api.github.com/repos/${{ github.repository_owner }}/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" | \
+          jq -r '.[-1].body')
+          if [[ "$LAST_COMMENT" =~ "cancel-deploy" ]]; then
+            echo "Cancelling deployment"
+            exit 1
+          fi
