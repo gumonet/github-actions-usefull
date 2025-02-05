@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - dev
-    tags:
-      - dev.*
+      - add-pr-cancell
 
 jobs:
   check-cancel-instructions:
