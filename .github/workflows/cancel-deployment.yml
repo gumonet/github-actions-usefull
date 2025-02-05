@@ -17,18 +17,17 @@ jobs:
         id: check-cancel
         run: |
           IS_CANCEL="FALSE"
-          if [[ "${{ github.event.head_commit.message }}" =~ "cancel-deploy" ]]; then
+          if [[ "${{ github.event.head_commit.message }}" =~ "[cancel-deploy]" ]]; then
             echo "Cancelling deployment" 
+            echo "Cancelling deployment via PR comment by ${{ github.actor }}: ${{ github.event.head_commit.message }} "
             IS_CANCEL="TRUE"
           else 
            if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
-                echo "https://api.github.com/repos/${{ github.repository_owner }}/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
-
                 LAST_COMMENT=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
                 "https://api.github.com/repos/${{ github.repository_owner }}/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" | \
                 jq -r '.[-1].body')
-                if [[ "$LAST_COMMENT" =~ "cancel-deploy" ]]; then
-                    echo "Cancelling deployment"
+                if [[ "$LAST_COMMENT" =~ "[cancel-deploy]" ]]; then
+                    echo "Cancelling deployment via PR comment by ${{ github.actor }} on PR ${{ github.event.pull_request.number }}: $LAST_COMMENT" "
                     IS_CANCEL="TRUE"
                 fi
             fi
