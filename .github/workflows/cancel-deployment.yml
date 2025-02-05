@@ -23,14 +23,15 @@ jobs:
             IS_CANCEL="TRUE"
           else 
            if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
-            echo "https://api.github.com/repos/${{ github.repository_owner }}/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
+                echo "https://api.github.com/repos/${{ github.repository_owner }}/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
 
-            LAST_COMMENT=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository_owner }}/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" | \
-            jq -r '.[-1].body')
-            if [[ "$LAST_COMMENT" =~ "cancel-deploy" ]]; then
-                echo "Cancelling deployment"
-                IS_CANCEL="TRUE"
+                LAST_COMMENT=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+                "https://api.github.com/repos/${{ github.repository_owner }}/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" | \
+                jq -r '.[-1].body')
+                if [[ "$LAST_COMMENT" =~ "cancel-deploy" ]]; then
+                    echo "Cancelling deployment"
+                    IS_CANCEL="TRUE"
+                fi
             fi
           fi
           echo "IS_CANCEL=${IS_CANCEL}" >> $GITHUB_ENV
