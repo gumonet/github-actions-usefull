@@ -1,0 +1,22 @@
+name: Cancell via comment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  update-yaml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/bin/yq
+
+      - name: Update APP_VERSION in demo2.yaml
+        env:
+          APP_VERSION: "new-version-1.0.0" # Replace with the actual version you want to set
+        run: |
+          yq eval '(.spec.template.spec.containers[].env[] | select(.name == "APP_VERSION") ).value = strenv(APP_VERSION)' -i demo2.yaml

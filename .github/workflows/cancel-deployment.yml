@@ -3,8 +3,7 @@ name: Cancell via comment
 on:
   push:
     branches:
-      - dev
-      - add-pr-cancell
+      - some-branch
 
 jobs:
   check-cancel-instructions:
@@ -37,7 +36,7 @@ jobs:
 
   deploy-infra:
     runs-on: ubuntu-latest
-    needs: ['check-cancel-instructions']
+    needs: ["check-cancel-instructions"]
     if: needs.check-cancel-instructions.outputs.IS_CANCEL != 'TRUE'
     steps:
       - uses: actions/checkout@v4
