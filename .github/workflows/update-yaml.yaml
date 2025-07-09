@@ -20,3 +20,5 @@ jobs:
           APP_VERSION: "new-version-1.0.0" # Replace with the actual version you want to set
         run: |
           yq eval '(.spec.template.spec.containers[].env[] | select(.name == "APP_VERSION") ).value = strenv(APP_VERSION)' -i demo2.yaml
+          echo "Updated APP_VERSION to $APP_VERSION in demo2.yaml"
+          cat demo2.yaml
